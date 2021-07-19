@@ -9,20 +9,26 @@ bot = Bot(token="token", parse_mode="HTML")
 dp = Dispatcher(bot, storage=storage)
 
 
+def hello_keys():
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    keyboard.row("Привет")
+    return keyboard
+
+
 class Welcome(StatesGroup):
     name = State()
 
 
 @dp.message_handler(lambda message: message.chat.type == "private", commands=['start'])
-async def start_bot(message: types.Message, state: FSMContext):
-    await message.answer(text="👋 <b>Добро пожаловать</b>")
+async def start_bot(message: types.Message):
+    await message.answer(text="👋 <b>Добро пожаловать</b>", reply_markup=hello_keys())
 
 
 @dp.message_handler(lambda message: message.chat.type == "private", text="Привет")
 async def hello(message: types.Message, state: FSMContext):
     await Welcome.name.set()
     asyncio.create_task(wait_message(message, state), name=message.from_user.id)
-    await message.answer(text="👋 <b>Привет, напиши своё имя</b>")
+    await message.answer(text="👋 <b>Привет, напиши своё имя</b>", reply_markup=types.ReplyKeyboardRemove())
 
 
 async def wait_message(message: types.Message, state: FSMContext):
@@ -35,7 +41,7 @@ async def wait_message(message: types.Message, state: FSMContext):
 async def get_name(message: types.Message, state: FSMContext):
     await cancel_wait(message.from_user.id)
     await state.finish()
-    await message.answer("😁 <b>Приятно познакомится, {}!</b>".format(message.text))
+    await message.answer("😁 <b>Приятно познакомиться, {}!</b>".format(message.text))
 
 
 async def cancel_wait(task_id):
